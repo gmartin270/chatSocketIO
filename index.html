@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title>Chat</title>
+		<script
+			src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+		<script type="text/javascript" src="./socket.io/lib/socket.io.js"></script>
+	</head>
+	<body>
+		<h1>Chat SocketIO</h1>
+		Mensaje: <input type="text" id="txtMensaje"></input>
+		<hr/>
+		<div id="estado">Iniciando conexión...</div>
+		<h3>Usuarios</h3>
+		<ul id="usuarios">
+		</ul>
+		<h3>Mensajes</h3>
+		<ul id="mensajes">
+		</ul>
+		<script>
+			var socket = io.connect("http://localhost:8080");
+	
+			var alias;
+			
+			socket.on('connect', function(data) {
+				//socket.emit('mensajes', "Hola que tal");
+				alias = prompt('Ingrese su alias para el Chat: ');
+				console.log(alias);
+				$("#estado").html('Conectado a la sala de chat como <b>' + alias + '</b>');
+				socket.emit('ingresar', alias);
+				//nuevoUsuario(alias);
+			})
+			
+			socket.on('nuevoUsuario', function(alias){
+				nuevoUsuario(alias);
+			});
+	
+			socket.on('mensajes', function(mensaje) {
+				nuevoMensaje(mensaje);
+				//console.log(data);
+			});
+			
+			socket.on('pastMsg', function(mensajes) {
+				$(mensajes).each(function(index, mensaje){
+					nuevoMensaje(mensaje);
+				});
+			});
+			
+			socket.on('usuarios', function(usuarios){
+				$("#usuarios").empty();
+				
+				$(usuarios).each(function(index, object){
+					nuevoUsuario(object);
+				});
+			});
+			
+			function nuevoUsuario(alias){
+				usuario = $('<li data-alias="' + alias + '" >' + alias + '</li>');
+				$("#usuarios").append(usuario);
+			}
+			
+			function nuevoMensaje(mensaje){
+				$("#mensajes").append($('<li>').append(mensaje));
+			}
+			
+			$(document).ready(function(){
+				$("#txtMensaje").keypress(function(event){
+					var keycode = event.keycode || event.which;
+					
+					if(keycode === 13){
+						var valor = $(event.target).val();
+						
+						if(valor.trim().length > 0){
+							socket.emit('mensajes', valor);
+							nuevoMensaje('yo: '+ valor);
+							$(event.target).val('');
+						}
+					}
+				});
+			});
+			
+			$(window).unload(function(){
+				socket.emit('end', alias);
+			});
+			
+			//$(temp1).each(function(i, o){console.log(o)});
+		</script>
+	</body>
+</html>
