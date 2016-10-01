@@ -20,6 +20,8 @@ var async = require('async');
 var express = require('express');
 var app = express();
 
+app.use('/css', express.static(__dirname + '/node_modules/bootstrap/dist/css'));
+
 //Http Server
 var server = require('http').createServer(app); //aca adorno al protocolo http con express
 

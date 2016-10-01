@@ -2,34 +2,51 @@
 <html>
 	<head>
 		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
 		<title>Chat</title>
+		<link href="/css/bootstrap.min.css" rel="stylesheet">
 		<script
 			src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
 		<script type="text/javascript" src="./socket.io/lib/socket.io.js"></script>
 	</head>
 	<body>
-		<h1>Chat SocketIO</h1>
-		Mensaje: <input type="text" id="txtMensaje"></input>
-		<hr/>
-		<div id="estado">Iniciando conexión...</div>
-		<h3>Usuarios</h3>
-		<ul id="usuarios">
-		</ul>
-		<h3>Mensajes</h3>
-		<ul id="mensajes">
-		</ul>
+		<div class="jumbotron">
+			<div class="container">
+				<h1>Chat SocketIO</h1>
+				<hr/>
+				<div id="estado">Iniciando conexión...</div>
+				<table style="width: 100%">
+					<tr valign="top">
+						<td width="30%">
+							<h3>Usuarios</h3>
+							<div id="usr-scroll" style="overflow: auto; height:100px">
+								<ul id="usuarios">
+								</ul>
+							</div>						
+						</td>
+						<td>
+							<h3>Mensajes</h3>
+							<div id="chat-scroll" style="overflow: auto; height: 200px; top:0">
+								<ul id="mensajes">
+								</ul>
+							</div>
+						</td>
+					</tr>
+				</table>
+				<br>
+				Mensaje: <input type="text" id="txtMensaje" style="min-width: 100px; width: 500px"></input>
+			</div>
+		</div>
 		<script>
 			var socket = io.connect("http://localhost:8080");
 	
 			var alias;
 			
 			socket.on('connect', function(data) {
-				//socket.emit('mensajes', "Hola que tal");
 				alias = prompt('Ingrese su alias para el Chat: ');
 				console.log(alias);
 				$("#estado").html('Conectado a la sala de chat como <b>' + alias + '</b>');
 				socket.emit('ingresar', alias);
-				//nuevoUsuario(alias);
 			})
 			
 			socket.on('nuevoUsuario', function(alias){
@@ -38,7 +55,6 @@
 	
 			socket.on('mensajes', function(mensaje) {
 				nuevoMensaje(mensaje);
-				//console.log(data);
 			});
 			
 			socket.on('pastMsg', function(mensajes) {
@@ -62,9 +78,14 @@
 			
 			function nuevoMensaje(mensaje){
 				$("#mensajes").append($('<li>').append(mensaje));
+				$('#chat-scroll').animate({
+					  scrollTop: $('#chat-scroll').get(0).scrollHeight}, 2000);
 			}
 			
 			$(document).ready(function(){
+				/* $('#chat-scroll').animate({
+					  scrollTop: $('#chat-scroll').get(0).scrollHeight}, 2000); */
+				
 				$("#txtMensaje").keypress(function(event){
 					var keycode = event.keycode || event.which;
 					
@@ -84,7 +105,6 @@
 				socket.emit('end', alias);
 			});
 			
-			//$(temp1).each(function(i, o){console.log(o)});
 		</script>
 	</body>
 </html>
