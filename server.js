@@ -20,7 +20,8 @@ var async = require('async');
 var express = require('express');
 var app = express();
 
-app.use('/css', express.static(__dirname + '/node_modules/bootstrap/dist/css'));
+app.use('/bootstrap', express.static(__dirname + '/node_modules/bootstrap/dist'));
+
 
 //Http Server
 var server = require('http').createServer(app); //aca adorno al protocolo http con express
@@ -38,14 +39,14 @@ app.get('/', function(req, res){
 })
 
 io.sockets.on('connection', function(socket){
-	console.log("se conecto un cliente");
+	console.log("Se conecto un cliente");
 	
 	socket.on('ingresar', function(alias){
 		var usuarios;
 		
 		if(alias != null){
 			socket.set('alias', alias); //asigno un alias al socket. El alias es el nombre del nickname.
-			socket.broadcast.emit('mensajes', alias + " se ha unido al chat.");
+			socket.broadcast.emit('info', alias + ' se ha unido al chat.');
 			
 			//Se envía al usuario los ultimos mensajes del chat.
 			cliRedis.lrange('queueMsg', 0, -1, function(err, reply){
@@ -75,7 +76,7 @@ io.sockets.on('connection', function(socket){
 	
 	socket.on('mensajes', function(message){
 		socket.get('alias', function(err, alias){
-			var msg = alias + ": " + message;
+			var msg = "<b><i>" + alias + "</i></b>" + ": " + message;
 			
 			socket.broadcast.emit('mensajes', msg);
 			queueMessageList(msg);
@@ -86,7 +87,7 @@ io.sockets.on('connection', function(socket){
 	
 	socket.on('end', function (alias) {
 	    socket.set('alias', alias);
-	    socket.broadcast.emit('mensajes', alias + " se ha retirado del chat.");
+	    socket.broadcast.emit('info', alias + " se ha retirado del chat.");
 	    console.log('cliente desconectado: ' + alias);
 	    
 	    async.series([
@@ -170,4 +171,4 @@ function queueMessageList(msg){
 	);
 }
 
-console.log("el server escucha en " + port);
+console.log("El server escucha en " + port);
